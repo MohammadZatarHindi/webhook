@@ -10,7 +10,16 @@ All notable changes to this project will be documented in this file.
 - PostgreSQL integration (`pipelines` table)
 - README.md, .gitignore, .env.example added
 
+## [v0.2] - 2026-03-18
+- Webhooks module implemented
+- `webhooks` table added in PostgreSQL
+- POST /api/webhooks endpoint to receive and store webhooks
+- Manual and HTTP tests verified
+- Status tracking (`pending`, `processed`, `failed`) added
+- JSONB payload storage for flexible webhook data
+- Optional extras discussed: validation, security, indexing, cleanup
+
 ## [Unreleased]
-- Webhooks module
 - Async queue processing
+- Jobs table to link webhooks → pipelines
 - Pipeline actions (uppercase, reverse, log)

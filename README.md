@@ -1,7 +1,7 @@
-# Webhook Pipeline Service (Pipelines Module)
+# Webhook Pipeline Service
 
 A **Pipeline Service** built with **TypeScript**, **Express**, and **PostgreSQL**, with input validation via **Zod**.  
-This project allows creating and managing pipelines with predefined actions.
+This project allows creating and managing pipelines with predefined actions, and receiving webhooks.
 
 ---
 
@@ -12,9 +12,13 @@ This project allows creating and managing pipelines with predefined actions.
   - `log` → Logs data to console  
   - `uppercase` → Converts strings to uppercase  
   - `reverse` → Reverses strings  
+- Receive and store **webhooks**:
+  - JSONB payload storage
+  - `status` tracking (`pending`, `processed`, `failed`)
+  - Optional extras: payload validation, security/authentication, indexing, cleanup
 - Strong **TypeScript typing** using interfaces (`Pipeline`, `ActionType`)  
 - **Input validation** using Zod  
-- Database integration with PostgreSQL (`pipelines` table)  
+- Database integration with PostgreSQL (`pipelines` + `webhooks` tables)  
 
 ---
 
@@ -25,14 +29,20 @@ src/
 ├── config/
 │   └── db.ts          # PostgreSQL connection
 ├── db/
-│   └── schema.sql     # Pipelines table
+│   └── schema.sql     # Pipelines & Webhooks tables
 ├── modules/
-│   └── pipelines/
-│       ├── pipelines.controller.ts
-│       ├── pipelines.routes.ts
-│       ├── pipelines.service.ts
-│       ├── pipelines.types.ts
-│       └── pipelines.schema.ts
+│   ├── pipelines/
+│   │   ├── pipelines.controller.ts
+│   │   ├── pipelines.routes.ts
+│   │   ├── pipelines.service.ts
+│   │   ├── pipelines.types.ts
+│   │   └── pipelines.schema.ts
+│   └── webhooks/
+│       ├── webhooks.controller.ts
+│       ├── webhooks.routes.ts
+│       ├── webhooks.service.ts
+│       ├── webhooks.types.ts
+│       └── webhooks.schema.ts
 ├── index.ts           # Entry point
 package.json
 tsconfig.json
@@ -94,6 +104,8 @@ API will be available at http://localhost:3000
 
 ## Database Table
 
+Pipelines
+
 ```SQL
 CREATE TABLE pipelines (
 	id SERIAL PRIMARY KEY,
@@ -102,3 +114,16 @@ CREATE TABLE pipelines (
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+Webhooks
+
+```SQL
+CREATE TABLE webhooks (
+  id SERIAL PRIMARY KEY,
+  source_name TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  status TEXT DEFAULT 'pending'
+);
+```
+
