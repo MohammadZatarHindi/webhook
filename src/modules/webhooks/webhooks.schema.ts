@@ -1,12 +1,8 @@
 import { z } from "zod";
 
-/**
- * Zod schema to validate incoming webhook requests
- * Ensures that the payload has:
- * - 'event' as a string
- * - 'data' as a record of any type
- */
 export const webhookSchema = z.object({
-  event: z.string(),
-  data: z.record(z.any()),
+  event: z.enum(['log', 'uppercase', 'reverse']),  // only these three allowed
+  data: z.record(z.string(), z.any()),              // object with string keys
 });
+
+export type WebhookEvent = z.infer<typeof webhookSchema>;

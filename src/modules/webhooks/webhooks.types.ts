@@ -1,5 +1,14 @@
-// Define the shape of a webhook event that the server expects
-export interface WebhookEvent {
-  event: string;             // The name/type of the event, e.g., "user_created"
-  data: Record<string, any>; // Arbitrary payload sent by the external system
-}
+import { z } from "zod";
+import { webhookSchema } from "./webhooks.schema";
+
+// PROBLEM:
+// You manually defined interface
+// It can go out of sync with schema
+
+// export interface WebhookEvent {
+//   event: string;
+//   data: Record<string, any>;
+// }
+
+// BETTER:
+export type WebhookEvent = z.infer<typeof webhookSchema>;

@@ -1,28 +1,50 @@
 import { pool } from "../../config/db";
 import { Pipeline, ActionType } from "./pipelines.types";
 
-/**
- * Create a new pipeline in the database
- * @param name - pipeline name
- * @param action - pipeline action type
- * @returns the created Pipeline object
- */
-export const createPipeline = async (
-  name: string,
-  action: ActionType
-): Promise<Pipeline> => {
+export const listPipelines = async (): Promise<Pipeline[]> => {
+  const result = await pool.query(`SELECT * FROM pipelines ORDER BY created_at DESC`);
+  return result.rows;
+};
+
+export const getPipelineById = async (pipelineId: number): Promise<Pipeline | null> => {
+  const result = await pool.query(`SELECT * FROM pipelines WHERE id = $1`, [pipelineId]);
+  return result.rows[0] || null;
+};
+
+export const createPipeline = async (name: string, action: ActionType): Promise<Pipeline> => {
   const result = await pool.query(
-    "INSERT INTO pipelines (name, action_type) VALUES ($1, $2) RETURNING *",
+    `INSERT INTO pipelines (name, action_type) VALUES ($1, $2) RETURNING *`,
     [name, action]
   );
   return result.rows[0];
 };
 
-/**
- * Fetch all pipelines from the database
- * @returns array of Pipeline objects
- */
-export const getPipelines = async (): Promise<Pipeline[]> => {
-  const result = await pool.query("SELECT * FROM pipelines ORDER BY id DESC");
-  return result.rows;
+export const updatePipeline = async (
+  pipelineId: number,
+  data: { name?: string; action_type?: ActionType }
+): Promise<Pipeline | null> => {
+  const fields: string[] = [];
+  const values: any[] = [];
+  let idx = 1;
+
+  if (data.name) {
+    fields.push(`name = $${idx++}`);
+    values.push(data.name);
+  }
+  if (data.action_type) {
+    fields.push(`action_type = $${idx++}`);
+    values.push(data.action_type);
+  }
+  if (fields.length === 0) return getPipelineById(pipelineId);
+
+  values.push(pipelineId);
+  const result = await pool.query(
+    `UPDATE pipelines SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`,
+    values
+  );
+  return result.rows[0] || null;
+};
+
+export const deletePipeline = async (pipelineId: number): Promise<void> => {
+  await pool.query(`DELETE FROM pipelines WHERE id = $1`, [pipelineId]);
 };

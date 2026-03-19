@@ -1,24 +1,26 @@
-import { WebhookEvent } from "./webhooks.types";
-import * as pipelineService from "../pipelines/pipelines.service";
+import { pool } from "../../config/db";
+import { WebhookEvent } from "./webhooks.schema";
 
-/**
- * Processes a webhook event by triggering pipelines that match the event type
- * @param event - WebhookEvent object received from external system
- * @returns Object with names of triggered pipelines
- */
-export const processWebhook = async (event: WebhookEvent) => {
-  // Fetch all pipelines from the database
-  const pipelines = await pipelineService.getPipelines();
+// Queue webhook as events for each matching pipeline
+export const createEvent = async (event: WebhookEvent) => {
+  const pipelinesResult = await pool.query(
+	  `SELECT id FROM pipelines WHERE action_type = $1`,
+	  [event.event] // guaranteed to match one of your action_types
+  );
 
-  // Filter pipelines whose action_type matches the webhook event
-  const triggered = pipelines.filter(p => p.action_type === event.event);
+  const pipelines = pipelinesResult.rows;
 
-  for (const p of triggered) {
-    // For now, just log the pipeline name and payload
-    // Later, implement actual actions like log/uppercase/reverse
-    console.log(`Triggered pipeline: ${p.name}`, event.data);
-  }
+  if (pipelines.length === 0) return [];
 
-  // Return a summary of triggered pipelines
-  return { triggeredPipelines: triggered.map(p => p.name) };
+  const createdEvents = [];
+
+	for (const p of pipelines) {
+		const result = await pool.query(
+		`INSERT INTO events (pipeline_id, payload) VALUES ($1, $2) RETURNING *`,
+		[p.id, event.data]
+		);
+		createdEvents.push(result.rows[0]);
+	}
+
+  return createdEvents;
 };
