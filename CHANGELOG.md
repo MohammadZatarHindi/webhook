@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [v0.4.0] - 2026-03-24
+## [v0.5.0] - 2026-03-24
 
 ###Major Update: Production Readiness & Architectural Refactoring
 
@@ -39,6 +39,19 @@ This release transforms the system into a robust, "Modular Monolith" with a prof
 ### Fixed
 
 - Relational Integrity: Updated SQL schema with ON DELETE CASCADE and strict Foreign Key constraints.
+
+---
+
+## [v0.4.0] - 2026-03-19
+### Docker & CI/CD
+- Added **Docker & Docker Compose** support for API, worker, Postgres, and Redis
+- CI/CD GitHub Actions workflow added:
+  - Builds TypeScript
+  - Spins up Postgres + Redis
+  - Seeds test pipeline, subscriber, and job
+  - Runs worker
+  - Verifies jobs processed successfully
+- No formal test files required; workflow acts as **functional smoke test**
 
 ---
 
