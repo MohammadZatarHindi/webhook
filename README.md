@@ -1,4 +1,4 @@
-![CI Status](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/actions/workflows/ci.yml/badge.svg)
+![CI Status](https://https://github.com/MohammadZatarHindi/Webhook/actions/workflows/ci.yml/badge.svg)
 
 # Express-Powered Webhook Orchestrator
 
@@ -12,47 +12,47 @@ this system implements a Producer-Consumer architecture—using a dedicated back
 ### Extensible Processing Pipelines
 Create and manage data streams with modular transformation logic. Each pipeline is mapped to a specific action type, ensuring strict data handling:
 
-- **Transformation Suite:** Supports `log` (observability), `uppercase` (string manipulation), and `reverse` (data inversion).
+**Transformation Suite:** Supports `log` (observability), `uppercase` (string manipulation), and `reverse` (data inversion).
 
-- **Isolated Processing:** Each pipeline operates independently, allowing unique configurations for different data sources.
+**Isolated Processing:** Each pipeline operates independently, allowing unique configurations for different data sources.
 
 ---
 
 ### Dynamic Subscriber Egress
 Manage where your processed data goes without hardcoding endpoints.
 
-- **One-to-Many Fan-out:** Attach multiple subscriber URLs to a single pipeline. A single incoming event can trigger multiple downstream deliveries.
+**One-to-Many Fan-out:** Attach multiple subscriber URLs to a single pipeline. A single incoming event can trigger multiple downstream deliveries.
 
-- **Dynamic Registration:** Add or remove subscribers via the API at runtime without restarting the Node.js services.
+**Dynamic Registration:** Add or remove subscribers via the API at runtime without restarting the Node.js services.
 
 ---
 
 ### Granular Subscribtion Management
 The system uses a relational mapping to connect data sources to their destinations.
 
-- **Many-to-Many Architecture:** A single pipeline can broadcast to multiple subscribers, and a subscriber can be associated with multiple pipelines through the subscribtions layer.
+**Many-to-Many Architecture:** A single pipeline can broadcast to multiple subscribers, and a subscriber can be associated with multiple pipelines through the subscribtions layer.
 
-- **Target Isolation:** Subscribtions are managed as independent entities, allowing you to activate or deactivate specific delivery routes without deleting the underlying pipeline or subscriber data.
+**Target Isolation:** Subscribtions are managed as independent entities, allowing you to activate or deactivate specific delivery routes without deleting the underlying pipeline or subscriber data.
 
 ---
 
 ### Persistent Job Queue (Event-Driven)
 Utilizes a **PostgreSQL-backed queue** to ensure that no data is lost during spikes in traffic.
 
-- **State Machine:** Every job follows a strict lifecycle: - `pending` → `processing` → `success` / `failed`.
+**State Machine:** Every job follows a strict lifecycle: - `pending` → `processing` → `success` / `failed`.
 
-- **Asynchronous Execution:** By offloading work to the jobs table, the Express API remains non-blocking and highly responsive.
+**Asynchronous Execution:** By offloading work to the jobs table, the Express API remains non-blocking and highly responsive.
 
 ---
 
 ### High-Efficiency Background Worker
 A dedicated **Node.js process** that acts as the engine of the system:
 
-- **Optimized Polling:** A configurable `5`-second heartbeat ensures rapid task pickup while maintaining low CPU overhead.
+**Optimized Polling:** A configurable `5`-second heartbeat ensures rapid task pickup while maintaining low CPU overhead.
 
-- **Pipeline Execution:** Automatically applies the correct transformation (action) before attempting delivery to the subscriber list.
+**Pipeline Execution:** Automatically applies the correct transformation (action) before attempting delivery to the subscriber list.
 
-- **Graceful Termination:** Handles SIGTERM and SIGINT signals to ensure that the PostgreSQL pool is closed and the current worker heartbeat completes before the process exits, 
+**Graceful Termination:** Handles SIGTERM and SIGINT signals to ensure that the PostgreSQL pool is closed and the current worker heartbeat completes before the process exits, 
 preventing data corruption or leaked connections.
 
 ---
@@ -60,50 +60,50 @@ preventing data corruption or leaked connections.
 ### Fault-Tolerant Retry Engine
 Built-in resilience for unstable network conditions or failing downstream services:
 
-- **Multi-Level Retries:** Both the core job processing and individual subscriber deliveries feature a `3`-attempt limit.
+**Multi-Level Retries:** Both the core job processing and individual subscriber deliveries feature a `3`-attempt limit.
 
-- **Deep Observability:** Detailed error tracking and timestamps for every failed attempt are stored in the database for easy debugging.
+**Deep Observability:** Detailed error tracking and timestamps for every failed attempt are stored in the database for easy debugging.
 
 ---
 
 ### Database Architecture
 
 1. Configuration Layer
-- **pipelines:** The core definition of a data stream. It stores the action_type (e.g., log, uppercase, reverse) which determines how the Worker transforms the data.
+	- **pipelines:** The core definition of a data stream. It stores the action_type (e.g., log, uppercase, reverse) which determines how the Worker transforms the data.
 
-- **subscribers:** A registry of external webhook endpoints (URLs) that are eligible to receive processed data.
+	- **subscribers:** A registry of external webhook endpoints (URLs) that are eligible to receive processed data.
 
-- **subscriptions:** A join table that manages the Many-to-Many relationship between pipelines and subscribers. This allows one pipeline to "fan-out" data to multiple destinations.
+	- **subscriptions:** A join table that manages the Many-to-Many relationship between pipelines and subscribers. This allows one pipeline to "fan-out" data to multiple destinations.
 
 2. Execution & Queue Layer
-- **events (The Job Queue):** Acts as the persistent storage for the asynchronous pipeline. It stores the raw payload, current status (pending, processing, success, failed), and an attempts counter for the retry logic.
+	- **events (The Job Queue):** Acts as the persistent storage for the asynchronous pipeline. It stores the raw payload, current status (pending, processing, success, failed), and an attempts counter for the retry logic.
 
-- **deliveries (Audit Trail):** A granular log of every HTTP request made by the Worker. It records the HTTP Status Code and any response errors, ensuring full observability for debugging failed delivery attempts.
+	- **deliveries (Audit Trail):** A granular log of every HTTP request made by the Worker. It records the HTTP Status Code and any response errors, ensuring full observability for debugging failed delivery attempts.
 
 ---
 
 ### Database Strategy & Schema Control
 The system's data integrity is managed through a centralized Source of Truth located in `src/db/schema.sql`.
 
-- **Idempotent Migrations:** The schema is designed to be easily reproducible. It includes IF NOT EXISTS logic and standard PostgreSQL constraints (Foreign Keys, Defaults, and Timestamps) to ensure a consistent environment across WSL, Docker, or Production.
+**Idempotent Migrations:** The schema is designed to be easily reproducible. It includes IF NOT EXISTS logic and standard PostgreSQL constraints (Foreign Keys, Defaults, and Timestamps) to ensure a consistent environment across WSL, Docker, or Production.
 
-- **Relational Integrity:** By enforcing ON DELETE CASCADE and strict data types in the SQL layer, the database maintains its own health, reducing the burden on the Node.js application layer.
+**Relational Integrity:** By enforcing ON DELETE CASCADE and strict data types in the SQL layer, the database maintains its own health, reducing the burden on the Node.js application layer.
 
-- **Audit Readiness:** The schema explicitly separates "Configuration" (Pipelines/Subscribers) from "Execution" (Events/Deliveries), allowing for high-performance indexing and historical audit trails.
+**Audit Readiness:** The schema explicitly separates "Configuration" (Pipelines/Subscribers) from "Execution" (Events/Deliveries), allowing for high-performance indexing and historical audit trails.
 
 ---
 
 ### Technical Foundation: Clean Code & Robustness
 To ensure the system is production-ready, I implemented a unified architectural layer that handles validation, error management, and database interaction:
 
-- **Type-Safe Validation & Error Handling:** The system uses Zod for strict schema validation at the middleware level. To keep the controllers clean and DRY (Don't Repeat Yourself), 
+**Type-Safe Validation & Error Handling:** The system uses Zod for strict schema validation at the middleware level. To keep the controllers clean and DRY (Don't Repeat Yourself), 
 I developed a catchAsync wrapper. This higher-order function eliminates the need for repetitive try/catch blocks in every controller; it automatically catches asynchronous errors and forwards them to a centralized Global Error Middleware and a custom AppError class.
 
-- **Generic Data Access Layer:** To optimize database interactions and reduce boilerplate, I built a genericQueries.ts utility. 
+**Generic Data Access Layer:** To optimize database interactions and reduce boilerplate, I built a genericQueries.ts utility. 
 This layer abstracts common PostgreSQL CRUD operations, providing a consistent interface for all modules (Pipelines, Jobs, Subscribers). This, 
 combined with a centralized dbErrorHandler, ensures that database-level exceptions (like unique constraint violations) are gracefully transformed into meaningful API responses.
 
-- **Type-Safe Environment Config:** The application validates .env variables at startup using Zod, 
+**Type-Safe Environment Config:** The application validates .env variables at startup using Zod, 
 ensuring the server never starts with missing or malformed configuration (like an invalid DATABASE_URL).
 
 ---
@@ -296,8 +296,7 @@ curl -X POST http://localhost:3000/webhooks/1 \
   -d '{"payload": {"text": "Hello, world!"}}'
 ```
 
-**5. Start the worker **
-
+**5. Start the worker**
 
 ```bash
 npm run worker
