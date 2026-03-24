@@ -69,16 +69,16 @@ Built-in resilience for unstable network conditions or failing downstream servic
 ### Database Architecture
 
 **1. Configuration Layer:**
-	- **pipelines:** The core definition of a data stream. It stores the action_type (e.g., log, uppercase, reverse) which determines how the Worker transforms the data.
+- **pipelines:** The core definition of a data stream. It stores the action_type (e.g., log, uppercase, reverse) which determines how the Worker transforms the data.
 
-	- **subscribers:** A registry of external webhook endpoints (URLs) that are eligible to receive processed data.
+- **subscribers:** A registry of external webhook endpoints (URLs) that are eligible to receive processed data.
 
-	- **subscribtions:** A join table that manages the Many-to-Many relationship between pipelines and subscribers. This allows one pipeline to "fan-out" data to multiple destinations.
+- **subscribtions:** A join table that manages the Many-to-Many relationship between pipelines and subscribers. This allows one pipeline to "fan-out" data to multiple destinations.
 
 **2. Execution & Queue Layer:**
-	- **events (The Job Queue):** Acts as the persistent storage for the asynchronous pipeline. It stores the raw payload, current status (pending, processing, success, failed), and an attempts counter for the retry logic.
+- **events (The Job Queue):** Acts as the persistent storage for the asynchronous pipeline. It stores the raw payload, current status (pending, processing, success, failed), and an attempts counter for the retry logic.
 
-	- **deliveries (Audit Trail):** A granular log of every HTTP request made by the Worker. It records the HTTP Status Code and any response errors, ensuring full observability for debugging failed delivery attempts.
+- **deliveries (Audit Trail):** A granular log of every HTTP request made by the Worker. It records the HTTP Status Code and any response errors, ensuring full observability for debugging failed delivery attempts.
 
 ---
 
